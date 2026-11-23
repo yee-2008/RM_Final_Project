@@ -1,54 +1,55 @@
-/*ÕâÊÇ°Ñµ×ÅÌËÙ¶È½âËãµ½ËÄ¸öÂÖ×Ó×ªËÙµÄ´úÂë
-Ô¼¶¨Ç°½ø·½ÏòÎªxÖá£¬Ê¹ÓÃÓÒÊÖÏµ£¬ÈÆzÕýÏòÐý×ªµÄ½ÇËÙ¶ÈÔ¼¶¨ÎªÕý£¨¾ÍÊÇÄæÊ±Õë×ª£©
-ÓÉ´ËµÃµ½µ×ÅÌËÄ¸öÂÖ×ÓÏà¶ÔÖÐÐÄµÄ×ø±ê
-¹ÃÇÒ°´ÕÕÏßÏÂÅàÑµµÄ´úÂë¸ñÊ½£¬¹æ¶¨È«¾Ö½á¹¹Ìå±äÁ¿Wheel_Data£¬½âËãº¯Êý¿ÉÖ±½Ó·ÃÎÊ
-Whell_Data¿ÉÒÔÏñMotor_DataÒ»ÑùÓÃº¯Êý³õÊ¼»¯
-×¢Òâ·½Ïò£¡ÕâÀïµÄAngelVelDesÒ»ÂÉÈ¡µ×ÅÌÏòÇ°ÎªÕý£¬Êµ¼Ê½øÐÐPID½âËãÊ±Ó¦¸Ã¸ù¾Ýµç»ú³¯ÏòºÍÕý·´×ª¹æ¶¨È¡·ûºÅ*/
+/*è¿™æ˜¯æŠŠåº•ç›˜é€Ÿåº¦è§£ç®—åˆ°å››ä¸ªè½®å­è½¬é€Ÿçš„ä»£ç 
+çº¦å®šå‰è¿›æ–¹å‘ä¸ºxè½´ï¼Œä½¿ç”¨å³æ‰‹ç³»ï¼Œç»•zæ­£å‘æ—‹è½¬çš„è§’é€Ÿåº¦çº¦å®šä¸ºæ­£ï¼ˆå°±æ˜¯é€†æ—¶é’ˆè½¬ï¼‰
+ç”±æ­¤å¾—åˆ°åº•ç›˜å››ä¸ªè½®å­ç›¸å¯¹ä¸­å¿ƒçš„åæ ‡
+å§‘ä¸”æŒ‰ç…§çº¿ä¸‹åŸ¹è®­çš„ä»£ç æ ¼å¼ï¼Œè§„å®šå…¨å±€ç»“æž„ä½“å˜é‡Wheel_Dataï¼Œè§£ç®—å‡½æ•°å¯ç›´æŽ¥è®¿é—®
+Whell_Dataå¯ä»¥åƒMotor_Dataä¸€æ ·ç”¨å‡½æ•°åˆå§‹åŒ–
+æ³¨æ„æ–¹å‘ï¼è¿™é‡Œçš„AngelVelDesä¸€å¾‹å–åº•ç›˜å‘å‰ä¸ºæ­£ï¼Œå®žé™…è¿›è¡ŒPIDè§£ç®—æ—¶åº”è¯¥æ ¹æ®ç”µæœºæœå‘å’Œæ­£åè½¬è§„å®šå–ç¬¦å·*/
 
-/*µ×ÅÌÎïÀí²ÎÊýÓÉ¹¤Í¼Êý¾ÝÌîÐ´£¬µ¥Î»mm£¬ËÙ¶ÈÔÝ¶¨mm/s£¬½ÇËÙ¶Èdeg/s*/ 
+/*åº•ç›˜ç‰©ç†å‚æ•°ç”±å·¥å›¾æ•°æ®å¡«å†™ï¼Œå•ä½mmï¼Œé€Ÿåº¦æš‚å®šmm/sï¼Œè§’é€Ÿåº¦deg/s*/ 
 #define PI 3.1416f
 
-float FL_AngleVelDes;   // ×óÇ°ÂÖÆÚÍû½ÇËÙ¶È£¬rad/s
-float FR_AngleVelDes;   // ÓÒÇ°ÂÖÆÚÍû½ÇËÙ¶È£¬rad/s
-float RL_AngleVelDes;   // ×óºóÂÖÆÚÍû½ÇËÙ¶È£¬rad/s
-float RR_AngleVelDes;   // ÓÒºóÂÖÆÚÍû½ÇËÙ¶È£¬rad/s
+typedef struct{
+    uint16_t Wheelbase; // è½´è·ï¼Œmm
+    uint16_t Track;     // è½®è·ï¼Œmm
+    uint16_t Radius;    // è½®åŠå¾„ï¼Œmm
+    int8_t   Sign;      // å½’ä¸€åŒ–ç¬¦å·ï¼šOåž‹=+1ï¼ŒXåž‹=-1
+} Wheel_DataTypedef;
+
+float FL_AngleVelDes;   // å·¦å‰è½®æœŸæœ›è§’é€Ÿåº¦ï¼Œrad/s
+float FR_AngleVelDes;   // å³å‰è½®æœŸæœ›è§’é€Ÿåº¦ï¼Œrad/s
+float RL_AngleVelDes;   // å·¦åŽè½®æœŸæœ›è§’é€Ÿåº¦ï¼Œrad/s
+float RR_AngleVelDes;   // å³åŽè½®æœŸæœ›è§’é€Ÿåº¦ï¼Œrad/s
 
 float Robot_Vx;
 float Robot_Vy;
 float Robot_AngleVel; 
-
-typedef struct{
-    uint16_t Wheelbase; // Öá¾à£¬mm
-    uint16_t Track;     // ÂÖ¾à£¬mm
-    uint16_t Radius;    // ÂÖ°ë¾¶£¬mm
-    int8_t   Sign;      // ¹éÒ»»¯·ûºÅ£ºOÐÍ=+1£¬XÐÍ=-1
-} Wheel_Data;
+Wheel_DataTypedef Wheel_Data;
 
 void Robot_To_Wheel(float Vx, float Vy, float AngleVel)
 {
-    /* ¼¸ºÎ²ÎÊý£º°ëÖá¾à a¡¢°ëÂÖ¾à b¡¢ÂÖ°ë¾¶ R£¬Í³Ò»Îª float */
+    /* å‡ ä½•å‚æ•°ï¼šåŠè½´è· aã€åŠè½®è· bã€è½®åŠå¾„ Rï¼Œç»Ÿä¸€ä¸º float */
     float a = Wheel_Data.Wheelbase / 2.0f;   // mm
     float b = Wheel_Data.Track     / 2.0f;   // mm
     float R = (float)Wheel_Data.Radius;      // mm
 
-    /* ÊäÈëËÙ¶È×ªÎª float£¬½ÇËÙ¶È deg/s -> rad/s */
-    float w  = (float)AngleVel * PI / 180.0f; // rad/s£¬ÄæÊ±ÕëÎªÕý
+    /* è¾“å…¥é€Ÿåº¦è½¬ä¸º floatï¼Œè§’é€Ÿåº¦ deg/s -> rad/s */
+    float w  = (float)AngleVel * PI / 180.0f; // rad/sï¼Œé€†æ—¶é’ˆä¸ºæ­£
 
-    /* ¹éÒ»»¯·ûºÅ£ºs_FL = s_RR = Sign£¬s_FR = s_RL = -Sign */
+    /* å½’ä¸€åŒ–ç¬¦å·ï¼šs_FL = s_RR = Signï¼Œs_FR = s_RL = -Sign */
     float s = (float)Wheel_Data.Sign;
 
-    /* µ¥ÂÖÏßËÙ¶È£¨mm/s£©£ºv_i = vx + s_i*vy + w*(s_i*x_i - y_i)
+    /* å•è½®çº¿é€Ÿåº¦ï¼ˆmm/sï¼‰ï¼šv_i = vx + s_i*vy + w*(s_i*x_i - y_i)
      * FL: x=+a, y=+b, s_i=+s
      * FR: x=+a, y=-b, s_i=-s
      * RL: x=-a, y=+b, s_i=-s
      * RR: x=-a, y=-b, s_i=+s
      */
-    float v_FL = vx + ( s)*vy + w*(( s)*( a) - ( b));
-    float v_FR = vx + (-s)*vy + w*((-s)*( a) - (-b));
-    float v_RL = vx + (-s)*vy + w*((-s)*(-a) - ( b));
-    float v_RR = vx + ( s)*vy + w*(( s)*(-a) - (-b));
+    float v_FL = Vx + ( s)*Vy + w*(( s)*( a) - ( b));
+    float v_FR = Vx + (-s)*Vy + w*((-s)*( a) - (-b));
+    float v_RL = Vx + (-s)*Vy + w*((-s)*(-a) - ( b));
+    float v_RR = Vx + ( s)*Vy + w*(( s)*(-a) - (-b));
 
-    /* ÏßËÙ¶È -> ÂÖ½ÇËÙ¶È£¨rad/s£©£¬±£´æµ½È«¾Ö±äÁ¿ */
+    /* çº¿é€Ÿåº¦ -> è½®è§’é€Ÿåº¦ï¼ˆrad/sï¼‰ï¼Œä¿å­˜åˆ°å…¨å±€å˜é‡ */
     FL_AngleVelDes = v_FL / R;
     FR_AngleVelDes = v_FR / R;
     RL_AngleVelDes = v_RL / R;
@@ -60,24 +61,24 @@ void Wheel_To_Robot(float FL_AngleVelFB, float FR_AngleVelFB, float RL_AngleVelF
     float a = Wheel_Data.Wheelbase / 2.0f;   // mm
     float b = Wheel_Data.Track     / 2.0f;   // mm
     float R = (float)Wheel_Data.Radius;      // mm
-    float s = (float)Wheel_Data.Sign;        // OÐÍ=+1£¬XÐÍ=-1
+    float s = (float)Wheel_Data.Sign;        // Oåž‹=+1ï¼ŒXåž‹=-1
 
-    /* Ðý×ªÏî·ÖÄ¸£ºsa - b¡£OÐÍÇÒ a=b Ê±Îª0£¬ÍË»¯£¬Ðè·ÀÖ¹³ýÒÔ0 */
+    /* æ—‹è½¬é¡¹åˆ†æ¯ï¼šsa - bã€‚Oåž‹ä¸” a=b æ—¶ä¸º0ï¼Œé€€åŒ–ï¼Œéœ€é˜²æ­¢é™¤ä»¥0 */
     float rot_den = s * a - b;
 
-    /* ³µÌåÏßËÙ¶È£¬mm/s */
+    /* è½¦ä½“çº¿é€Ÿåº¦ï¼Œmm/s */
     Robot_Vx = R * 0.25f * (FL_AngleVelFB + FR_AngleVelFB + RL_AngleVelFB + RR_AngleVelFB);
 
     Robot_Vy = R * s * 0.25f * (FL_AngleVelFB - FR_AngleVelFB - RL_AngleVelFB + RR_AngleVelFB);
 
-    /* ½ÇËÙ¶È£ºÏÈËã rad/s£¬ÔÙ×ª deg/s */
+    /* è§’é€Ÿåº¦ï¼šå…ˆç®— rad/sï¼Œå†è½¬ deg/s */
     if (rot_den > 1e-6f || rot_den < -1e-6f)
 	{
         float w_rad = R * 0.25f / rot_den * (FL_AngleVelFB - FR_AngleVelFB + RL_AngleVelFB - RR_AngleVelFB);
         Robot_AngleVel = w_rad * 180.0f / PI;   // deg/s
     }
 	else{
-        /* ÍË»¯£ºÐý×ª²»¿ÉÓÉÂÖËÙÎ¨Ò»È·¶¨ */
+        /* é€€åŒ–ï¼šæ—‹è½¬ä¸å¯ç”±è½®é€Ÿå”¯ä¸€ç¡®å®š */
         Robot_AngleVel = 0.0f;
     }
 }
