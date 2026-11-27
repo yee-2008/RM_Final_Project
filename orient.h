@@ -47,6 +47,8 @@ extern OrientState orient_state;
 
 void ReadForward(uint8_t position[]);
 void ReadBack(uint8_t position[]);
+void OrientConfigure(float forward_mm_s, float turn_deg_s,
+                     float lateral_gain_mm_s, float yaw_gain_deg_s);
 void OrientInit(void);
 void GetPosition(float receiver[]);
 void autoControl(void);

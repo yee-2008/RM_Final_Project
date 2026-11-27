@@ -4,28 +4,16 @@
 #include "main.h"
 #include "orient.h"
 
-typedef enum { STOP, MANUAL, AUTO } DriveMode;
-
-typedef struct {
-    DriveMode mode;
-    float vx_mm_s;
-    float vy_mm_s;
-    float yaw_deg_s;
-} DriveCommand;
-
-/* Implement in the hardware modules. Return 0 if no valid, fresh command
- * is available. After a timeout, require an explicit new drive command.
- */
-int Remote_Read(DriveCommand *command);
-void Motor_Stop(void);
-void Motor_ApplyWheelTargets(void); /* Consume FL/FR/RL/RR_AngleVelDes. */
-void Robot_To_Wheel(float vx, float vy, float yaw);
+#include "wheel.h"
+#include "drive.h"
+#include "remote.h"
 
 static DriveMode mode;
 static uint32_t last_control_ms;
 
-static void App_Init(void)
+static void App_Init(uint32_t remote_timeout_ms)
 {
+    Remote_Init(remote_timeout_ms);
     mode = STOP;
     last_control_ms = HAL_GetTick();
     Motor_Stop();
@@ -40,7 +28,7 @@ static void App_Loop(void)
     last_control_ms = now;
 
     DriveCommand command = {0};
-    if (!Remote_Read(&command)) {
+    if (!Remote_Read(now, &command)) {
         mode = STOP;
         Motor_Stop();
         return;
