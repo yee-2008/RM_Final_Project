@@ -6,14 +6,9 @@ Whell_Data可以像Motor_Data一样用函数初始化
 注意方向！这里的AngelVelDes一律取底盘向前为正，实际进行PID解算时应该根据电机朝向和正反转规定取符号*/
 
 /*底盘物理参数由工图数据填写，单位mm，速度暂定mm/s，角速度deg/s*/ 
-#define PI 3.1416f
+#include "wheel.h"
 
-typedef struct{
-    uint16_t Wheelbase; // 轴距，mm
-    uint16_t Track;     // 轮距，mm
-    uint16_t Radius;    // 轮半径，mm
-    int8_t   Sign;      // 归一化符号：O型=+1，X型=-1
-} Wheel_DataTypedef;
+#define PI 3.1416f
 
 float FL_AngleVelDes;   // 左前轮期望角速度，rad/s
 float FR_AngleVelDes;   // 右前轮期望角速度，rad/s
@@ -31,6 +26,12 @@ void Robot_To_Wheel(float Vx, float Vy, float AngleVel)
     float a = Wheel_Data.Wheelbase / 2.0f;   // mm
     float b = Wheel_Data.Track     / 2.0f;   // mm
     float R = (float)Wheel_Data.Radius;      // mm
+
+    if (!Wheel_Data.Radius || !Wheel_Data.Wheelbase || !Wheel_Data.Track ||
+        (Wheel_Data.Sign != 1 && Wheel_Data.Sign != -1)) {
+        FL_AngleVelDes = FR_AngleVelDes = RL_AngleVelDes = RR_AngleVelDes = 0;
+        return;
+    }
 
     /* 输入速度转为 float，角速度 deg/s -> rad/s */
     float w  = (float)AngleVel * PI / 180.0f; // rad/s，逆时针为正

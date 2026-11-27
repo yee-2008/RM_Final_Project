@@ -6,9 +6,8 @@ float limit(float control ,float max){
         return max;
     }else if(control<-max){
         return -max;
-    }else if(control>=-max&&control<=max){
-        return control;
     }
+    return control;
 }
 
 //PID计算

@@ -5,13 +5,20 @@
 #include "wheel.h"
 
 #define LIMIT 3     //状态转变的传感器触发数阈值
-#define autoVelocityX 3     //小车循迹的固定前进速度(m/s)
-#define autoAngelVelocity 360       //循迹转向的固定角速度 (deg/s)
+static float forwardSpeed; /* m/s */
+static float turnSpeed;    /* deg/s */
+static PID autoPosition, autoDirection;
 
+void OrientConfigure(float forward_mm_s, float turn_deg_s,
+                     float lateral_gain_mm_s, float yaw_gain_deg_s)
+{
+    forwardSpeed = forward_mm_s > 0 ? forward_mm_s / 1000.0f : 0;
+    turnSpeed = turn_deg_s > 0 ? turn_deg_s : 0;
+    PID_Init(&autoPosition, lateral_gain_mm_s / 1000.0f, 0, 0, 0,
+             forwardSpeed, 0, 0, 0, forwardSpeed);
+    PID_Init(&autoDirection, yaw_gain_deg_s, 0, 0, 0, turnSpeed, 0, 0, 0, turnSpeed);
+}
 
-
-
-PID autoPosition,autoDirection;
 OrientState orient_state=STRAIGHT;
 
 // typedef enum OrientState {
@@ -49,8 +56,8 @@ void ReadBack(uint8_t position[]){
 //循迹初始化，寻迹状态重置为直行，PID参数初始化
 void OrientInit(void){
     orient_state=STRAIGHT;
-    PID_Init(&autoPosition,0,0,0,0,0,0,0,0,0);
-    PID_Init(&autoDirection,0,0,0,0,0,0,0,0,0);
+    autoPosition.error_all = autoPosition.error_last = 0;
+    autoDirection.error_all = autoDirection.error_last = 0;
     return;
 }
 
@@ -76,6 +83,13 @@ void GetPosition(float receiver[]){
             total_backward+=-i+3.5;
         }
     }
+    receiver[0] = count_forward ? total_forward / count_forward : FAIL;
+    receiver[1] = count_forward && count_backward
+        ? receiver[0] - total_backward / count_backward : FAIL;
+    if (orient_state != END && !count_forward && !count_backward) {
+        orient_state = LOSE;
+        return;
+    }
     switch (orient_state){
         case STRAIGHT:
             if (count_forward>=LIMIT){
@@ -93,26 +107,7 @@ void GetPosition(float receiver[]){
                 }
             }
 
-            if (count_forward==0&&count_backward==0){
-                orient_state=LOSE;
-            }
-
-
-            if (count_forward==0){
-                receiver[0]=FAIL;
-            }else{
-                receiver[0]=total_forward/count_forward;
-            }
-
-
-            if (count_backward==0){
-                receiver[1]=FAIL;
-            }else{
-                receiver[1]=total_forward/count_forward-total_backward/count_backward;
-            }
             break;
-
-
         case CROSSLINE:
             if (count_backward>=LIMIT&&backward[0]!=0&&backward[7]!=0){
                 orient_state=END;
@@ -128,21 +123,23 @@ void GetPosition(float receiver[]){
                 return;
             }
             break;
-        
+        case END:
+        case LOSE:
+            break;
     }
 }
 
 //计算小车各个电机的目标速度，这里只负责Y方向和前进方向的位置环(方向定义与麦轮解算相同),电机速度环的控制就交给负责电机的同志了(^_^)
 void autoControl(void){
-    static float VelocityY;         //  m/s
-    static float AngelVelocity;     //  deg/s
-    float VelocityX;                //  m/s
+    float VelocityY = 0;         //  m/s
+    float AngelVelocity = 0;     //  deg/s
+    float VelocityX = 0;                //  m/s
+    float position[2];
+    GetPosition(position);
     switch (orient_state)
     {
     case STRAIGHT:
-        VelocityX=autoVelocityX;
-        float position[2];
-        GetPosition(position);
+        VelocityX=forwardSpeed;
         if (position[0]!=FAIL){
             VelocityY=calculate(&autoPosition,position[0]);
         }
@@ -155,19 +152,19 @@ void autoControl(void){
     case TURNLEFT:
         VelocityX=0;
         VelocityY=0;
-        AngelVelocity=autoAngelVelocity;
+        AngelVelocity=turnSpeed;
         break;
 
 
     case TURNRIGHT:
         VelocityX=0;
         VelocityY=0;
-        AngelVelocity=-autoAngelVelocity;
+        AngelVelocity=-turnSpeed;
         break;
 
 
     case CROSSLINE:
-        VelocityX=autoVelocityX;
+        VelocityX=forwardSpeed;
         VelocityY=0;
         AngelVelocity=0;
         break;
@@ -181,6 +178,6 @@ void autoControl(void){
         break;
 
     }
-    Wheel_Cal(VelocityX*1000,VelocityY*1000,AngelVelocity);
+    Robot_To_Wheel(VelocityX*1000,VelocityY*1000,AngelVelocity);
     return;
 }
