@@ -1,0 +1,5 @@
+MDK-ARM/C1_F407/
+MDK-ARM/*.uvguix.*
+MDK-ARM/*.uvoptx
+MDK-ARM/DebugConfig/
+MDK-ARM/RTE/

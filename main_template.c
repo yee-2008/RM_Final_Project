@@ -1,8 +1,7 @@
-/* Move the declarations to CubeMX main.c (USER CODE Includes/PV/PFP),
- * and call App_Init / App_Loop from USER CODE 2 / WHILE loop body.
- */
+/* The generated C1 main calls these foreground control functions. */
 #include "main.h"
 #include "orient.h"
+#include "main_template.h"
 
 #include "wheel.h"
 #include "drive.h"
@@ -13,7 +12,7 @@
 static DriveMode mode;
 static uint32_t last_control_ms;
 
-static void App_Init(uint32_t remote_timeout_ms)
+void App_Init(uint32_t remote_timeout_ms)
 {
     Remote_Init(remote_timeout_ms);
     RemoteFrame_Reset();
@@ -25,7 +24,7 @@ static void App_Init(uint32_t remote_timeout_ms)
 /* Call continuously from the foreground on a dedicated Bluetooth UART, 8N1.
  * Read before the 10 ms control gate so the F407 receive register is drained.
  */
-static void App_PollBluetooth(UART_HandleTypeDef *bluetooth)
+void App_PollBluetooth(UART_HandleTypeDef *bluetooth)
 {
     static int discard_line;
     uint32_t status = bluetooth->Instance->SR;
@@ -45,7 +44,7 @@ static void App_PollBluetooth(UART_HandleTypeDef *bluetooth)
 
 }
 
-static void App_Loop(void)
+void App_Loop(void)
 {
     uint32_t now = HAL_GetTick();
     if ((uint32_t)(now - last_control_ms) < 10U) {

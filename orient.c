@@ -76,11 +76,11 @@ void GetPosition(float receiver[]){
     for (int i=0;i<8;i++){
         if (forward[i]!=0){
             count_forward++;
-            total_forward+=i-3.5;
+            total_forward+=i-3.5f;
         }
         if (backward[i]!=0){
             count_backward++;
-            total_backward+=-i+3.5;
+            total_backward+=-i+3.5f;
         }
     }
     receiver[0] = count_forward ? total_forward / count_forward : FAIL;
