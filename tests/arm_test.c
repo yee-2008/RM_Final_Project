@@ -12,8 +12,9 @@ uint32_t HAL_GetTick(void) { return ms; }
 void Motor_Stop(void) { chassis_x = 0; }
 void Motor_ApplyWheelTargets(void) {}
 void Robot_To_Wheel(float x, float y, float yaw) { chassis_x = x; (void)y; (void)yaw; }
-void autoControl(void) {}
-void OrientInit(void) {}
+static int line_starts, line_ticks;
+void autoControl(void) { ++line_ticks; chassis_x = 75; }
+void OrientInit(void) { ++line_starts; orient_state = STRAIGHT; }
 HAL_StatusTypeDef ServoDriver_Start(const ServoDriver *s, uint16_t us)
 {
     if (starts++ == fail_at) return HAL_ERROR;
@@ -65,6 +66,20 @@ int main(void)
     frame("M,0,0,0,3\n"); tick();
     assert(target[ARM_BASE] == 1550 && target[ARM_WRIST] == 1550);
     frame("A\n"); tick(); assert(target[ARM_WRIST] == 1550);
+    assert(line_starts == 1 && line_ticks == 1 && chassis_x == 75);
+    orient_state = END;
+    frame("A\n"); tick();
+    assert(line_starts == 1 && line_ticks == 1 && chassis_x == 0);
+    frame("S\n"); tick();
+    frame("A\n"); tick();
+    assert(line_starts == 2 && line_ticks == 2);
+    orient_state = LOSE;
+    tick();
+    assert(chassis_x == 0 && line_ticks == 2);
+    frame("S\n"); tick();
+    frame("A\n"); tick(); tick(); tick(); tick();
+    assert(chassis_x == 0 && line_starts == 3);
+
     frame("M,0,0,0,8\n"); tick(); assert(target[ARM_GRIP] == 1450);
     frame("S\n"); tick(); assert(target[ARM_GRIP] == 1450);
     frame("M,100,0,0,7\n"); tick();

@@ -34,7 +34,7 @@ class MainActivity : ComponentActivity() {
             key(epoch) {
                 Controls(status, connected, ::chooseDevice, { vx, vy, yaw, arm ->
                     link.update("M,$vx,$vy,$yaw,$arm\n")
-                }, { link.update("S\n") })
+                }, { link.update("S\n") }, { link.update("A\n") })
             }
         }
     }

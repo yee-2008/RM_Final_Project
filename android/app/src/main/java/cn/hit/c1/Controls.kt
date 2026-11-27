@@ -26,9 +26,12 @@ private val Ink = Color(0xFF11273A)
 private val Blue = Color(0xFF176A87)
 private val Pale = Color(0xFFEAF4F5)
 
+private enum class ControlPage(val label: String) { CHASSIS("底盘驾驶"), ARM("机械臂点动"), LINE("半自动循迹") }
+
 @Composable
-fun Controls(status: String, connected: Boolean, connect: () -> Unit, send: (Int, Int, Int, Char) -> Unit, stop: () -> Unit) {
-    var armMode by remember { mutableStateOf(false) }
+fun Controls(status: String, connected: Boolean, connect: () -> Unit, send: (Int, Int, Int, Char) -> Unit, stop: () -> Unit, startLine: () -> Unit) {
+    var page by remember { mutableStateOf(ControlPage.CHASSIS) }
+    var sendingAuto by remember { mutableStateOf(false) }
     var vx by remember { mutableIntStateOf(0) }
     var vy by remember { mutableIntStateOf(0) }
     var yaw by remember { mutableIntStateOf(0) }
@@ -39,16 +42,18 @@ fun Controls(status: String, connected: Boolean, connect: () -> Unit, send: (Int
     val currentSend by rememberUpdatedState(send)
     val currentStop by rememberUpdatedState(stop)
     fun reset() {
+        sendingAuto = false
         generation++
         blocked = activePointers > 0
         vx = 0; vy = 0; yaw = 0; key = '-'
         currentStop()
     }
     fun transmit() {
-        if (connected && !blocked) currentSend(vx, vy, yaw, key)
+        if (connected && !blocked && page != ControlPage.LINE) currentSend(vx, vy, yaw, key)
     }
     LaunchedEffect(connected) {
         if (!connected) {
+            sendingAuto = false
             generation++
             blocked = activePointers > 0
             vx = 0; vy = 0; yaw = 0; key = '-'
@@ -76,15 +81,24 @@ fun Controls(status: String, connected: Boolean, connect: () -> Unit, send: (Int
         }
         Spacer(Modifier.height(12.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            listOf(false to "底盘驾驶", true to "机械臂点动").forEach { (mode, label) ->
-                FilledTonalButton(onClick = { if (armMode != mode) { reset(); armMode = mode } },
-                    colors = ButtonDefaults.filledTonalButtonColors(containerColor = if (armMode == mode) Blue else Color.White, contentColor = if (armMode == mode) Color.White else Ink)) { Text(label) }
+            ControlPage.values().forEach { next ->
+                FilledTonalButton(onClick = { if (page != next) { reset(); page = next } },
+                    colors = ButtonDefaults.filledTonalButtonColors(containerColor = if (page == next) Blue else Color.White, contentColor = if (page == next) Color.White else Ink)) { Text(next.label) }
             }
             Spacer(Modifier.weight(1f))
-            Text(if (armMode) "按住动作，松手保持" else "双手操作 · 松手归中", color = Color(0xFF67808B), modifier = Modifier.align(Alignment.CenterVertically))
+            Text(when (page) { ControlPage.ARM -> "按住动作，松手保持"; ControlPage.CHASSIS -> "双手操作 · 松手归中"; ControlPage.LINE -> "半自动 · 运行与停止" }, color = Color(0xFF67808B), modifier = Modifier.align(Alignment.CenterVertically))
         }
         Spacer(Modifier.height(10.dp))
-        if (!armMode) {
+        if (page == ControlPage.LINE) {
+            Column(Modifier.weight(1f).fillMaxWidth().background(Color.White, RoundedCornerShape(20.dp)),
+                verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(if (sendingAuto) "正在发送循迹指令" else "等待启动", color = Ink, fontSize = 24.sp)
+                Spacer(Modifier.height(20.dp))
+                Button(enabled = connected && !blocked, onClick = {
+                    if (sendingAuto) reset() else { sendingAuto = true; startLine() }
+                }) { Text(if (sendingAuto) "停止循迹" else "启动循迹", fontSize = 22.sp) }
+            }
+        } else if (page == ControlPage.CHASSIS) {
             val stickGeneration = generation
             Row(Modifier.weight(1f).fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                 StickCard("平移", "上下前后 · 左右横移", connected && !blocked, generation, Modifier.weight(1f).fillMaxHeight()) { x, y ->
