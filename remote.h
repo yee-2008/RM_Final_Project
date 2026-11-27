@@ -5,6 +5,11 @@
 
 typedef enum { STOP, MANUAL, AUTO } DriveMode;
 
+typedef enum {
+    ARM_HOLD, ARM_BASE_POS, ARM_BASE_NEG, ARM_WRIST_POS, ARM_WRIST_NEG,
+    ARM_LIFT_UP, ARM_LIFT_DOWN, ARM_CLOSE, ARM_OPEN
+} ArmAction;
+
 typedef struct {
     DriveMode mode;
     float vx_mm_s;
@@ -24,5 +29,9 @@ int Remote_Submit(const DriveCommand *command, uint32_t received_ms);
  * STOP is a valid command; 0 means startup or link loss.
  */
 int Remote_Read(uint32_t now_ms, DriveCommand *command);
+
+int Remote_SubmitWithArm(const DriveCommand *command, ArmAction arm, uint32_t received_ms);
+int Remote_ReadWithArm(uint32_t now_ms, DriveCommand *command, ArmAction *arm);
+void Remote_Disconnect(void);
 
 #endif

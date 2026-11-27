@@ -5,6 +5,7 @@
 static uint32_t timeout_ms;
 static uint32_t last_received_ms;
 static DriveCommand latest_command;
+static ArmAction latest_arm;
 static int initialized;
 static int have_command;
 
@@ -15,6 +16,7 @@ static int finite_float(float value)
 
 void Remote_Init(uint32_t timeout)
 {
+    latest_arm = ARM_HOLD;
     timeout_ms = timeout;
     last_received_ms = 0U;
     latest_command.mode = STOP;
@@ -27,7 +29,13 @@ void Remote_Init(uint32_t timeout)
 
 int Remote_Submit(const DriveCommand *command, uint32_t received_ms)
 {
-    if (!initialized || command == 0) {
+    return Remote_SubmitWithArm(command, ARM_HOLD, received_ms);
+}
+
+int Remote_SubmitWithArm(const DriveCommand *command, ArmAction arm, uint32_t received_ms)
+{
+    if (!initialized || command == 0 || (unsigned)arm > ARM_OPEN ||
+        (command->mode != MANUAL && arm != ARM_HOLD)) {
         return 0;
     }
     if (command->mode != STOP && command->mode != MANUAL && command->mode != AUTO) {
@@ -38,6 +46,7 @@ int Remote_Submit(const DriveCommand *command, uint32_t received_ms)
         return 0;
     }
 
+    latest_arm = arm;
     latest_command = *command;
     last_received_ms = received_ms;
     have_command = 1;
@@ -60,4 +69,18 @@ int Remote_Read(uint32_t now_ms, DriveCommand *command)
 
     *command = latest_command;
     return 1;
+}
+
+int Remote_ReadWithArm(uint32_t now_ms, DriveCommand *command, ArmAction *arm)
+{
+    if (!arm) return 0;
+    int live = Remote_Read(now_ms, command);
+    *arm = live ? latest_arm : ARM_HOLD;
+    return live;
+}
+
+void Remote_Disconnect(void)
+{
+    have_command = 0;
+    latest_arm = ARM_HOLD;
 }
