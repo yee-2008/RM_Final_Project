@@ -18,6 +18,10 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "dma.h"
+#include "fatfs.h"
+#include "i2s.h"
+#include "sdio.h"
 #include "tim.h"
 #include "usart.h"
 #include "gpio.h"
@@ -91,10 +95,25 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_DMA_Init();
+  MX_TIM1_Init();
+  MX_TIM2_Init();
+  MX_TIM3_Init();
+  MX_TIM4_Init();
   MX_TIM5_Init();
-  MX_TIM8_Init();
+  MX_TIM9_Init();
+  MX_TIM10_Init();
+  MX_TIM11_Init();
+  MX_TIM12_Init();
   MX_USART3_UART_Init();
+  MX_SDIO_SD_Init();
+  MX_I2S2_Init();
+  MX_FATFS_Init();
   /* USER CODE BEGIN 2 */
+  TIM_HandleTypeDef *const encoders[] = {&htim2, &htim3, &htim4, &htim1};
+  for (unsigned i = 0; i < sizeof encoders / sizeof encoders[0]; ++i) {
+    if (HAL_TIM_Encoder_Start(encoders[i], TIM_CHANNEL_ALL) != HAL_OK) Error_Handler();
+  }
 #if C1_ENABLE_DRIVE
   if (C1_Bench_Init(&chassis) != HAL_OK) Error_Handler();
 #else
@@ -143,7 +162,12 @@ void SystemClock_Config(void)
   RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
   RCC_OscInitStruct.HSIState = RCC_HSI_ON;
   RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
-  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;
+  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
+  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
+  RCC_OscInitStruct.PLL.PLLM = 16;
+  RCC_OscInitStruct.PLL.PLLN = 192;
+  RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
+  RCC_OscInitStruct.PLL.PLLQ = 4;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
   {
     Error_Handler();

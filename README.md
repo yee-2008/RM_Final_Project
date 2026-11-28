@@ -14,6 +14,8 @@ The iHiter RM final project
 
 ## L298N 电机与 PWM 舵机驱动
 
+[C1 开发板接线与 CubeMX 配置](firmware/C1_Bench/README.md)列出四轮 L298N、电机编码器、四舵机、两块循迹、HC-05 和 SDIO/I²S2 的排针与定时器分配。
+
 将 `actuators.c` 加到 Keil 工程，并把 `actuators.h` 所在目录加入头文件搜索路径。在 CubeMX 中配置好 GPIO 和定时器，完成 MX 初始化后再启动各通道。每个电机和舵机各建一份配置，电机按照 FL、FR、RL、RR 对应到实车轮位。
 
 - **电机**：L298N 的每路 EN 接一个定时器高有效 PWM 通道，IN1/IN2 接推挽输出 GPIO，初始均为低。若驱动板用 EN 跳帽将 EN 固定为高，接 PWM 前拔掉对应跳帽。按 FL、FR、RL、RR 填写四份 `DriveMotorConfig`，含每轮实测满占空比角速度 `max_rad_s`，用 `Motor_Init(config)` 统一启动，返回 HAL_OK 后才进入运行。用 `MotorDriver_SetDuty()` 给出 −1000 至 +1000 的有符号占空比，0 关闭 EN，使轮子滑行停止。初次调试架空逐轮点动，按实测调整各轮方向。上层换向时先写 0，待轮子停稳后再给反向占空比。

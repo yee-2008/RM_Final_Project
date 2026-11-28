@@ -45,35 +45,37 @@ void MX_GPIO_Init(void)
   GPIO_InitTypeDef GPIO_InitStruct = {0};
 
   /* GPIO Ports Clock Enable */
+  __HAL_RCC_GPIOE_CLK_ENABLE();
   __HAL_RCC_GPIOC_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
-  __HAL_RCC_GPIOE_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
   __HAL_RCC_GPIOD_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOC, FL_IN1_Pin|FL_IN2_Pin|FR_IN1_Pin|FR_IN2_Pin
-                          |RL_IN1_Pin|RL_IN2_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOC, FL_IN1_Pin|FL_IN2_Pin|FR_IN1_Pin|RL_IN1_Pin
+                          |RL_IN2_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOD, RR_IN1_Pin|RR_IN2_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOD, FR_IN2_Pin|RR_IN1_Pin|RR_IN2_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pins : FL_IN1_Pin FL_IN2_Pin FR_IN1_Pin FR_IN2_Pin
-                           RL_IN1_Pin RL_IN2_Pin */
-  GPIO_InitStruct.Pin = FL_IN1_Pin|FL_IN2_Pin|FR_IN1_Pin|FR_IN2_Pin
-                          |RL_IN1_Pin|RL_IN2_Pin;
+  /*Configure GPIO pins : BT_AUX_Pin LINE_F1_Pin LINE_F2_Pin LINE_F3_Pin
+                           LINE_F4_Pin LINE_F5_Pin LINE_F6_Pin LINE_F7_Pin
+                           LINE_F0_Pin */
+  GPIO_InitStruct.Pin = BT_AUX_Pin|LINE_F1_Pin|LINE_F2_Pin|LINE_F3_Pin
+                          |LINE_F4_Pin|LINE_F5_Pin|LINE_F6_Pin|LINE_F7_Pin
+                          |LINE_F0_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : FL_IN1_Pin FL_IN2_Pin FR_IN1_Pin RL_IN1_Pin
+                           RL_IN2_Pin */
+  GPIO_InitStruct.Pin = FL_IN1_Pin|FL_IN2_Pin|FR_IN1_Pin|RL_IN1_Pin
+                          |RL_IN2_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
-
-  /*Configure GPIO pins : LINE_F1_Pin LINE_F2_Pin LINE_F3_Pin LINE_F4_Pin
-                           LINE_F5_Pin LINE_F6_Pin LINE_F7_Pin LINE_F0_Pin */
-  GPIO_InitStruct.Pin = LINE_F1_Pin|LINE_F2_Pin|LINE_F3_Pin|LINE_F4_Pin
-                          |LINE_F5_Pin|LINE_F6_Pin|LINE_F7_Pin|LINE_F0_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
 
   /*Configure GPIO pins : LINE_R4_Pin LINE_R5_Pin LINE_R6_Pin LINE_R7_Pin
                            LINE_R0_Pin LINE_R1_Pin LINE_R3_Pin */
@@ -83,8 +85,8 @@ void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : RR_IN1_Pin RR_IN2_Pin */
-  GPIO_InitStruct.Pin = RR_IN1_Pin|RR_IN2_Pin;
+  /*Configure GPIO pins : FR_IN2_Pin RR_IN1_Pin RR_IN2_Pin */
+  GPIO_InitStruct.Pin = FR_IN2_Pin|RR_IN1_Pin|RR_IN2_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
@@ -95,6 +97,12 @@ void MX_GPIO_Init(void)
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(LINE_R2_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : SD_DETECT_Pin */
+  GPIO_InitStruct.Pin = SD_DETECT_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+  HAL_GPIO_Init(SD_DETECT_GPIO_Port, &GPIO_InitStruct);
 
 }
 

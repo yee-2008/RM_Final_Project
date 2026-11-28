@@ -22,10 +22,10 @@ static const C1_BenchConfig chassis = {
 #include "tim.h"
 /* timer/channel, min_us, max_us, initial_us, signed step_us per 10 ms */
 static const ArmJoint arm_joints[ARM_JOINT_COUNT] = {
-    [ARM_BASE]  = {{&htim8, TIM_CHANNEL_1, 0, 0}, 0, 0},
-    [ARM_WRIST] = {{&htim8, TIM_CHANNEL_2, 0, 0}, 0, 0},
-    [ARM_LIFT]  = {{&htim8, TIM_CHANNEL_3, 0, 0}, 0, 0},
-    [ARM_GRIP]  = {{&htim8, TIM_CHANNEL_4, 0, 0}, 0, 0}
+    [ARM_BASE]  = {{&htim10, TIM_CHANNEL_1, 0, 0}, 0, 0},
+    [ARM_WRIST] = {{&htim11, TIM_CHANNEL_1, 0, 0}, 0, 0},
+    [ARM_LIFT]  = {{&htim12, TIM_CHANNEL_1, 0, 0}, 0, 0},
+    [ARM_GRIP]  = {{&htim12, TIM_CHANNEL_2, 0, 0}, 0, 0}
 };
 #endif
 
