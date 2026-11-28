@@ -23,13 +23,17 @@ HAL_StatusTypeDef C1_Bench_Init(const C1_BenchConfig *config)
 
     DriveMotorConfig motors[DRIVE_WHEEL_COUNT] = {
         {{&htim5, TIM_CHANNEL_1, FL_IN1_GPIO_Port, FL_IN1_Pin,
-          FL_IN2_GPIO_Port, FL_IN2_Pin}, config->max_rad_s[0]},
+          FL_IN2_GPIO_Port, FL_IN2_Pin}, config->max_rad_s[0], &htim2,
+          config->counts_per_turn[0], config->feedback_gain},
         {{&htim9, TIM_CHANNEL_1, FR_IN1_GPIO_Port, FR_IN1_Pin,
-          FR_IN2_GPIO_Port, FR_IN2_Pin}, config->max_rad_s[1]},
+          FR_IN2_GPIO_Port, FR_IN2_Pin}, config->max_rad_s[1], &htim3,
+          config->counts_per_turn[1], config->feedback_gain},
         {{&htim5, TIM_CHANNEL_3, RL_IN1_GPIO_Port, RL_IN1_Pin,
-          RL_IN2_GPIO_Port, RL_IN2_Pin}, config->max_rad_s[2]},
+          RL_IN2_GPIO_Port, RL_IN2_Pin}, config->max_rad_s[2], &htim4,
+          config->counts_per_turn[2], config->feedback_gain},
         {{&htim5, TIM_CHANNEL_4, RR_IN1_GPIO_Port, RR_IN1_Pin,
-          RR_IN2_GPIO_Port, RR_IN2_Pin}, config->max_rad_s[3]}
+          RR_IN2_GPIO_Port, RR_IN2_Pin}, config->max_rad_s[3], &htim1,
+          config->counts_per_turn[3], config->feedback_gain}
     };
 
     if (Motor_Init(motors) != HAL_OK) {

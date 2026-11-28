@@ -9,6 +9,8 @@ typedef struct {
     /* Full-duty calibrated wheel speed in rad/s, order FL, FR, RL, RR. */
     float max_rad_s[DRIVE_WHEEL_COUNT];
     uint32_t remote_timeout_ms;
+    int32_t counts_per_turn[DRIVE_WHEEL_COUNT];
+    float feedback_gain;
 } C1_BenchConfig;
 
 /* Call only after CubeMX GPIO, TIM5, and USART3 initialization. */

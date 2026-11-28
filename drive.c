@@ -6,6 +6,8 @@
 
 static DriveMotorConfig motors[DRIVE_WHEEL_COUNT];
 static uint8_t motor_initialized;
+static uint32_t previous_count[DRIVE_WHEEL_COUNT];
+static uint32_t previous_ms;
 
 static uint8_t valid_speed(float speed)
 {
@@ -30,7 +32,11 @@ HAL_StatusTypeDef Motor_Init(const DriveMotorConfig config[DRIVE_WHEEL_COUNT])
         if (config[i].motor.timer == NULL ||
             config[i].motor.in1_port == NULL ||
             config[i].motor.in2_port == NULL ||
-            !valid_speed(config[i].max_rad_s)) {
+            !valid_speed(config[i].max_rad_s) ||
+            ((config[i].feedback_gain == 0.0f) != (config[0].feedback_gain == 0.0f)) ||
+            (config[i].feedback_gain != 0.0f &&
+             (!valid_speed(config[i].feedback_gain) || config[i].encoder == NULL ||
+              config[i].counts_per_turn == 0))) {
             return HAL_ERROR;
         }
     }
@@ -68,7 +74,11 @@ void Motor_Stop(void)
     if (motor_initialized != 0U) {
         for (uint32_t i = 0; i < DRIVE_WHEEL_COUNT; ++i) {
             MotorDriver_SetDuty(&motors[i].motor, 0);
+            if (motors[i].feedback_gain != 0.0f) {
+                previous_count[i] = __HAL_TIM_GET_COUNTER(motors[i].encoder);
+            }
         }
+        previous_ms = HAL_GetTick();
     }
 }
 
@@ -99,9 +109,36 @@ void Motor_ApplyWheelTargets(void)
         }
     }
 
+    uint32_t now = HAL_GetTick();
+    uint32_t elapsed_ms = now - previous_ms;
+    if (motors[0].feedback_gain != 0.0f && elapsed_ms > 20U) {
+        /* A missed control cycle can make the encoder delta ambiguous. */
+        Motor_Stop();
+        return;
+    }
+    if (motors[0].feedback_gain != 0.0f && elapsed_ms == 0U) return;
+    previous_ms = now;
     double scale = peak > 1.0 ? 1.0 / peak : 1.0;
     for (uint32_t i = 0; i < DRIVE_WHEEL_COUNT; ++i) {
-        double duty = (double)targets[i] / (double)motors[i].max_rad_s * scale * 1000.0;
+        double requested = targets[i] * scale;
+        double corrected = requested;
+        if (motors[i].feedback_gain != 0.0f) {
+            TIM_HandleTypeDef *encoder = motors[i].encoder;
+            uint32_t mask = __HAL_TIM_GET_AUTORELOAD(encoder);
+            uint32_t count = __HAL_TIM_GET_COUNTER(encoder);
+            uint32_t delta = (count - previous_count[i]) & mask;
+            previous_count[i] = count;
+            /* C1 uses the full 16- or 32-bit period on each encoder timer. */
+            int64_t ticks = delta;
+            if (delta > mask / 2U) ticks -= (int64_t)mask + 1;
+            double measured = ticks * 6283.185307179586 /
+                              ((double)motors[i].counts_per_turn * elapsed_ms);
+            corrected += motors[i].feedback_gain * (requested - measured);
+        }
+        double duty = corrected / motors[i].max_rad_s * 1000.0;
+        if (duty > 1000.0) duty = 1000.0;
+        if (duty < -1000.0) duty = -1000.0;
+        if (requested == 0.0) duty = 0.0;
         MotorDriver_SetDuty(&motors[i].motor, (int32_t)duty);
     }
 }

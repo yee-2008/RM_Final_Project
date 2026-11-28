@@ -9,6 +9,9 @@ typedef struct {
     MotorDriver motor;
     /* Wheel angular speed in rad/s at 1000 permille duty. */
     float max_rad_s;
+    TIM_HandleTypeDef *encoder;
+    int32_t counts_per_turn; /* Signed quadrature counts per wheel revolution. */
+    float feedback_gain; /* Dimensionless proportional correction, 0 = open loop. */
 } DriveMotorConfig;
 
 /* Config order: front-left, front-right, rear-left, rear-right. */

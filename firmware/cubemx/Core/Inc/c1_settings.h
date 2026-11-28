@@ -13,6 +13,8 @@
 static const C1_BenchConfig chassis = {
     .geometry = {.Wheelbase = 190, .Track = 0, .Radius = 0, .Sign = 0},
     .max_rad_s = {0, 0, 0, 0},
+    .counts_per_turn = {0, 0, 0, 0}, /* Signed CNT change per forward wheel turn. */
+    .feedback_gain = 0.0f, /* Set positive after encoder calibration. */
     .remote_timeout_ms = C1_REMOTE_TIMEOUT_MS
 };
 #endif
